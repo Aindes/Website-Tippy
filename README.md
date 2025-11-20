@@ -53,7 +53,7 @@ Tippy is a web application for buying and selling preloved items with blockchain
    PORT=3001
    DB_HOST=localhost
    DB_USER=root
-   DB_PASSWORD=your_password
+   DB_PASSWORD=
    DB_NAME=tippy_db
    BLOCKCHAIN_URL=http://localhost:8545
    ```
