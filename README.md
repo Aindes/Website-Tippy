@@ -1,6 +1,6 @@
 # Tippy - Preloved Items Marketplace
 
-Tippy is a web application for buying and selling preloved items with blockchain-based payments.
+Tippy is a web application for buying preloved items with blockchain-based payments.
 
 ## Features
 
@@ -20,10 +20,9 @@ Tippy is a web application for buying and selling preloved items with blockchain
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js
 - MySQL
-- MetaMask browser extension
-- Local blockchain network (e.g., Ganache) or testnet connection
+ik- Local blockchain network (e.g., Ganache) or testnet connection
 
 ## Setup Instructions
 
@@ -53,7 +52,7 @@ Tippy is a web application for buying and selling preloved items with blockchain
    PORT=3001
    DB_HOST=localhost
    DB_USER=root
-   DB_PASSWORD=your_password
+   DB_PASSWORD=
    DB_NAME=tippy_db
    BLOCKCHAIN_URL=http://localhost:8545
    ```
@@ -97,6 +96,10 @@ Import the provided Postman collection to test the APIs:
 - Orders API: `GET /api/orders`
 - Payment API: `POST /api/payment`
 
-## License
+## Anggota Kelompok
 
-MIT
+1. Graine Ivana Lumbantobing - 235150701111042
+2. Intan Desi Purnomo - 23515070111050
+3. Melani Sitohang - 235150700111042
+4. Mutiara Dwi Artono - 235150701111052
+
