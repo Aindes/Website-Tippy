@@ -1,9 +1,34 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    const saved = localStorage.getItem('cartItems');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [lastOrderId, setLastOrderId] = useState(() => {
+    return localStorage.getItem('lastOrderId') || null;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (lastOrderId) {
+      localStorage.setItem('lastOrderId', lastOrderId);
+    } else {
+      localStorage.removeItem('lastOrderId');
+    }
+  }, [lastOrderId]);
+    // Reset lastOrderId if cart changes
+    useEffect(() => {
+      setLastOrderId(null);
+    }, [JSON.stringify(cartItems)]);
+  const clearCart = () => {
+    setCartItems([]);
+  };
 
   const addToCart = (product) => {
     setCartItems((prevItems) => {
@@ -43,6 +68,9 @@ export function CartProvider({ children }) {
         removeFromCart,
         updateQuantity,
         getCartTotal,
+        clearCart,
+        lastOrderId,
+        setLastOrderId,
       }}
     >
       {children}

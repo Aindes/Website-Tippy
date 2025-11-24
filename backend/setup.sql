@@ -20,6 +20,16 @@ CREATE TABLE orders (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
 INSERT INTO products (name, description, price, image_url) VALUES 
 ('Sepatu Nike Air Max', 'Sepatu running bekas pakai 3 bulan, kondisi 90%', 800.000, '/images/nikeAir.jpg'),
 ('Tas Gucci Authentic', 'Tas Gucci authentic second kondisi 85%', 5.000.000, '/images/tasGucci.png'),

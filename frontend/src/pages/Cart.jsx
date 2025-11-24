@@ -17,32 +17,95 @@ import {
   NumberDecrementStepper,
   useToast,
 } from '@chakra-ui/react';
+import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Cart() {
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart, lastOrderId, setLastOrderId } = useCart();
   const navigate = useNavigate();
   const toast = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleCheckout = async () => {
+    setIsProcessing(true);
+    let orderId = lastOrderId;
     try {
-      const response = await axios.post('http://localhost:3001/api/orders', {
-        items: cartItems,
-        total_amount: getCartTotal(),
+      // 1. Cek apakah sudah ada order pending
+      if (!orderId) {
+        const response = await axios.post('http://localhost:3001/api/orders', {
+          items: cartItems,
+          total_amount: getCartTotal(),
+        });
+        orderId = response.data.orderId;
+        setLastOrderId(orderId);
+      }
+
+      // 2. Request snapToken ke backend
+      const paymentRes = await axios.post('http://localhost:3001/api/payment', {
+        orderId,
+        amount: getCartTotal(),
       });
-      
-      const orderId = response.data.orderId;
-      navigate(`/payment/${orderId}`);
+      const snapToken = paymentRes.data.snapToken;
+
+      // 3. Panggil MidTrans Snap popup
+      if (window.snap && snapToken) {
+        window.snap.pay(snapToken, {
+          onSuccess: async function(result){
+            await axios.patch(`http://localhost:3001/api/orders/${orderId}/pay`);
+            clearCart();
+            setLastOrderId(null);
+            toast({
+              title: 'Pembayaran Berhasil',
+              description: 'Transaksi berhasil! Terima kasih.',
+              status: 'success',
+              duration: 3000,
+              isClosable: true,
+            });
+            setIsProcessing(false);
+            navigate('/orders');
+          },
+          onPending: function(result){
+            toast({
+              title: 'Pembayaran Pending',
+              description: 'Transaksi masih menunggu pembayaran.',
+              status: 'info',
+              duration: 3000,
+              isClosable: true,
+            });
+            setIsProcessing(false);
+          },
+          onError: function(result){
+            toast({
+              title: 'Pembayaran Gagal',
+              description: 'Terjadi kesalahan pembayaran.',
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            });
+            setIsProcessing(false);
+          },
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Gagal memproses pembayaran. Snap.js belum ter-load atau token kosong.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        setIsProcessing(false);
+      }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Could not create order. Please try again.',
+        description: error.response?.data?.error || 'Could not create order or process payment. Please try again.',
         status: 'error',
         duration: 3000,
         isClosable: true,
       });
+      setIsProcessing(false);
     }
   };
 
@@ -106,8 +169,8 @@ function Cart() {
           <Text fontSize="xl" fontWeight="bold">
             Total: Rp{getCartTotal()}
           </Text>
-          <Button colorScheme="pink" size="lg" onClick={handleCheckout} px={8}>
-            Checkout
+          <Button colorScheme="pink" size="lg" onClick={handleCheckout} px={8} isDisabled={isProcessing}>
+            {isProcessing ? 'Processing...' : 'Checkout'}
           </Button>
         </HStack>
       </VStack>
