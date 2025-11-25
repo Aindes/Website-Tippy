@@ -1,28 +1,30 @@
+
 # Tippy - Preloved Items Marketplace
 
-Tippy is a web application for buying preloved items with blockchain-based payments.
+Tippy is a web application for buying preloved items, supporting both MidTrans and blockchain (MetaMask) payments.
 
 ## Features
 
-- Browse preloved products
 - View product details
-- Order management
-- Blockchain payment integration using Web3.js
-- Secure payment processing
+- Add to cart and manage cart
+- Order management (view, delete, payment status)
+- Payment via MidTrans (bank/ewallet)
+- Payment via Blockchain (MetaMask, Sepolia testnet, ethers.js)
+- Automatic cart clearing and order status update after payment
 
 ## Tech Stack
 
-- Frontend: React.js with Chakra UI
+- Frontend: React.js (Vite) with Chakra UI
 - Backend: Node.js with Express
 - Database: MySQL
-- Blockchain: Web3.js
-- API Testing: Postman
+- Blockchain: ethers.js + MetaMask (Sepolia testnet)
+- Payment Gateway: MidTrans
 
 ## Prerequisites
 
 - Node.js
 - MySQL
-ik- Local blockchain network (e.g., Ganache) or testnet connection
+- MetaMask browser extension (for blockchain payment)
 
 ## Setup Instructions
 
@@ -41,22 +43,20 @@ ik- Local blockchain network (e.g., Ganache) or testnet connection
    ```bash
    cd backend
    ```
-
 2. Install dependencies:
    ```bash
    npm install
    ```
-
-3. Create a .env file with your configuration:
+3. Buat file `.env` (jangan di-push ke GitHub!) dengan konfigurasi:
    ```
    PORT=3001
    DB_HOST=localhost
    DB_USER=root
    DB_PASSWORD=
    DB_NAME=tippy_db
-   BLOCKCHAIN_URL=http://localhost:8545
+   MIDTRANS_SERVER_KEY=your_midtrans_server_key
+   MIDTRANS_CLIENT_KEY=your_midtrans_client_key
    ```
-
 4. Start the server:
    ```bash
    npm start
@@ -68,29 +68,30 @@ ik- Local blockchain network (e.g., Ganache) or testnet connection
    ```bash
    cd frontend
    ```
-
 2. Install dependencies:
    ```bash
    npm install
    ```
-
 3. Start the development server:
    ```bash
-   npm start
+   npm run dev
    ```
-
 4. Open your browser and navigate to `http://localhost:3000`
 
-## Testing Payments
+## Payment Testing
 
-1. Install MetaMask browser extension
-2. Connect MetaMask to your local blockchain network or testnet
-3. Make sure you have test ETH in your wallet
-4. Try making a purchase and confirm the transaction in MetaMask
+### MidTrans
+- Pastikan backend sudah terhubung ke MidTrans (sandbox)
+- Checkout di frontend, lakukan pembayaran via Snap popup
+
+### Blockchain (MetaMask)
+- Install MetaMask di browser
+- Pilih jaringan Sepolia testnet
+- Pastikan wallet punya saldo ETH testnet
+- Klik "Pay with Blockchain" di cart, konfirmasi transaksi di MetaMask
+- Order status akan otomatis berubah setelah pembayaran
 
 ## API Testing with Postman
-
-Import the provided Postman collection to test the APIs:
 
 - Products API: `GET /api/products`
 - Orders API: `GET /api/orders`
@@ -102,4 +103,3 @@ Import the provided Postman collection to test the APIs:
 2. Intan Desi Purnomo - 23515070111050
 3. Melani Sitohang - 235150700111042
 4. Mutiara Dwi Artono - 235150701111052
-
