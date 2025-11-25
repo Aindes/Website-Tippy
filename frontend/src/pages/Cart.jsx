@@ -17,12 +17,80 @@ import {
   NumberDecrementStepper,
   useToast,
 } from '@chakra-ui/react';
+import { ethers } from 'ethers';
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Cart() {
+    // Blockchain payment function
+    // Kurs ETH/IDR (update sesuai harga ETH terbaru)
+    const ETH_IDR_RATE = 30000000; // 1 ETH = Rp30.000.000
+
+    async function payWithBlockchain() {
+      if (!window.ethereum) {
+        toast({
+          title: 'MetaMask Not Found',
+          description: 'Silakan install MetaMask di browser kamu.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+      try {
+        // Pastikan order sudah dibuat di backend
+        let orderId = lastOrderId;
+        if (!orderId) {
+          const response = await axios.post('http://localhost:3001/api/orders', {
+            items: cartItems,
+            total_amount: getCartTotal(),
+          });
+          orderId = response.data.orderId;
+          setLastOrderId(orderId);
+        }
+
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (chainId !== '0xaa36a7') {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0xaa36a7' }],
+          });
+        }
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        // Konversi total cart (rupiah) ke ETH
+        const ethAmount = (getCartTotal() / ETH_IDR_RATE).toFixed(6); // 6 digit desimal
+        const tx = await signer.sendTransaction({
+          to: '0xb034dff1a12f962c2d88d3c1c23d62b0135eb811',
+          value: ethers.parseEther(ethAmount)
+        });
+        await tx.wait();
+        // Update status order di backend
+        if (orderId) {
+          await axios.patch(`http://localhost:3001/api/orders/${orderId}/pay`);
+        }
+        clearCart();
+        toast({
+          title: 'Blockchain Payment Success',
+          description: `Transaksi blockchain berhasil! Terima kasih. Dibayar: ${ethAmount} ETH`,
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate('/orders');
+      } catch (err) {
+        toast({
+          title: 'Blockchain Payment Error',
+          description: err.message || 'Transaksi gagal. Coba cek jaringan dan saldo.',
+          status: 'error',
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+    }
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart, lastOrderId, setLastOrderId } = useCart();
   const navigate = useNavigate();
   const toast = useToast();
@@ -171,6 +239,9 @@ function Cart() {
           </Text>
           <Button colorScheme="pink" size="lg" onClick={handleCheckout} px={8} isDisabled={isProcessing}>
             {isProcessing ? 'Processing...' : 'Checkout'}
+          </Button>
+          <Button colorScheme="blue" size="lg" onClick={payWithBlockchain} px={8}>
+            Pay with Blockchain
           </Button>
         </HStack>
       </VStack>
